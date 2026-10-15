@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 public class SmsReceiver extends BroadcastReceiver {
     // Firebase Authentication e ei user ta banaben (firestore.rules er email er sathe mile thakte hobe)
     static final String APP_EMAIL = "app@smmmoon.com";
-    static final String APP_PASS  = "CHANGE_THIS_PASSWORD";
+    static final String APP_PASS  = "Fahad1155";
 
     static void signIn(Runnable then) {
         FirebaseAuth a = FirebaseAuth.getInstance();
