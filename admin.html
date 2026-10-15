@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMM MOON Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,'Hind Siliguri',sans-serif;background:#f1f5f9;color:#0f172a;padding:20px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:22px;margin-bottom:16px}
+.login{max-width:340px;margin:12vh auto;background:#fff;padding:26px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.login input,.tools input,.tools select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;margin-bottom:10px}
+button{background:#1d6fe8;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
+button.g{background:#e2e8f0;color:#0f172a}button.r{background:#fee2e2;color:#b91c1c}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:#fff;border-radius:12px;padding:14px}.stat b{display:block;font-size:24px}
+.tools{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+.tbl{background:#fff;border-radius:12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+.badge{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.unused{background:#dcfce7;color:#166534}.used{background:#e2e8f0;color:#475569}
+.bkash{color:#d0236f;font-weight:700}.nagad{color:#e0560f;font-weight:700}
+#err{color:#b91c1c;font-size:14px;margin-top:8px}
+</style></head><body>
+<div id="loginBox" class="login"><h1>Admin login</h1>
+  <input id="em" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Password">
+  <button id="li" style="width:100%">Login</button><p id="err"></p></div>
+<div id="app" class="wrap" style="display:none">
+  <div class="top"><h1>SMM MOON · Transactions</h1><button class="g" id="lo">Logout</button></div>
+  <div class="stats"><div class="stat">Total<b id="s1">0</b></div><div class="stat">Unused<b id="s2">0</b></div><div class="stat">Used<b id="s3">0</b></div></div>
+  <div class="tools"><input id="q" placeholder="Transaction ID / number / amount khujun">
+    <select id="fm"><option value="">bKash + Nagad</option><option value="bkash">bKash</option><option value="nagad">Nagad</option></select>
+    <select id="fs"><option value="">Shob status</option><option value="unused">Unused</option><option value="used">Used</option></select></div>
+  <div class="tbl"><table><thead><tr><th>Time</th><th>Method</th><th>Transaction ID</th><th>Sender</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+<script type="module">
+const U="https://www.gstatic.com/firebasejs/10.12.2/";
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,collection,query,orderBy,limit,onSnapshot,doc,updateDoc,deleteDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyDOr4xSjQjHt4mghc4B8-zGlsppNInB0To",authDomain:"bkash-nagad-sms-checker.firebaseapp.com",projectId:"bkash-nagad-sms-checker",appId:"1:854018818535:web:aef0bf68361be81e143d42"});
+const auth=getAuth(app),db=getFirestore(app),$=i=>document.getElementById(i);
+let rows=[],unsub=null;
+$("li").onclick=async()=>{ $("err").textContent="";
+  try{await signInWithEmailAndPassword(auth,$("em").value.trim(),$("pw").value)}catch(e){$("err").textContent="Login hoy nai: "+e.code} };
+$("lo").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{
+  $("loginBox").style.display=u?"none":"block"; $("app").style.display=u?"block":"none";
+  if(unsub){unsub();unsub=null}
+  if(u) unsub=onSnapshot(query(collection(db,"transactions"),orderBy("createdAt","desc"),limit(300)),
+    s=>{rows=s.docs.map(d=>({id:d.id,...d.data()}));render()},
+    e=>{alert("Data load hoy nai: "+e.message+"\nAdmin email ta firestore.rules er sathe mile kina dekhun.")});
+});
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function render(){
+  const q=$("q").value.trim().toLowerCase(),m=$("fm").value,st=$("fs").value;
+  const f=rows.filter(r=>(!m||r.method===m)&&(!st||r.status===st)&&(!q||(r.trxId+r.sender+r.amount).toLowerCase().includes(q)));
+  $("s1").textContent=rows.length;$("s2").textContent=rows.filter(r=>r.status==="unused").length;$("s3").textContent=rows.filter(r=>r.status==="used").length;
+  $("tb").innerHTML=f.map(r=>`<tr><td>${r.createdAt?.toDate?r.createdAt.toDate().toLocaleString():"..."}</td>
+   <td class="${esc(r.method)}">${r.method==="bkash"?"bKash":"Nagad"}</td><td>${esc(r.trxId)}</td><td>${esc(r.sender||"-")}</td><td>${esc(r.amount)} ৳</td>
+   <td><span class="badge ${esc(r.status)}">${esc(r.status)}</span></td>
+   <td><button class="g" data-a="t" data-id="${esc(r.id)}" data-s="${esc(r.status)}">${r.status==="unused"?"Mark used":"Restore"}</button>
+   <button class="r" data-a="d" data-id="${esc(r.id)}">Delete</button></td></tr>`).join("")||'<tr><td colspan="7">Ekhono kono transaction nai</td></tr>';
+}
+["q","fm","fs"].forEach(i=>$(i).oninput=render);
+$("tb").onclick=async e=>{const b=e.target.closest("button");if(!b)return;const ref=doc(db,"transactions",b.dataset.id);
+  try{ if(b.dataset.a==="d"){ if(confirm("Delete korben?")) await deleteDoc(ref); }
+       else await updateDoc(ref,b.dataset.s==="unused"?{status:"used",usedAt:serverTimestamp()}:{status:"unused",usedAt:null}); }
+  catch(x){alert("Error: "+x.message)} };
+</script></body></html>

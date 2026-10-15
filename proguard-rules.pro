@@ -1,0 +1,1 @@
+-keepclassmembers class com.company.sms.MainActivity$Bridge { @android.webkit.JavascriptInterface <methods>; }

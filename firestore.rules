@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- ei duita email Firebase Authentication e banaben ----
+    function mail() { return request.auth != null && request.auth.token.email != null ? request.auth.token.email : ''; }
+    function isAdmin() { return mail() == 'admin@smmmoon.com'; }
+    function isApp()   { return mail() == 'app@smmmoon.com'; }
+
+    match /transactions/{id} {
+      // website sudhu nirdisto ekta ID khujte pare, puro list dekhte pare na
+      allow get: if true;
+      allow list: if isAdmin();
+
+      // shudhu mobile app (ba admin) notun transaction banate pare
+      allow create: if (isApp() || isAdmin())
+        && id.matches('^(bkash|nagad)_[A-Z0-9]{6,20}$')
+        && request.resource.data.method in ['bkash', 'nagad']
+        && request.resource.data.amount is number
+        && request.resource.data.status == 'unused';
+
+      // website sudhu unused -> used korte pare; admin shob kichu
+      allow update: if isAdmin()
+        || (resource.data.status == 'unused'
+            && request.resource.data.status == 'used'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'usedAt']));
+
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

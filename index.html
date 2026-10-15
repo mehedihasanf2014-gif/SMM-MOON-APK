@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMM MOON</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fff;font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:64px 24px;color:#0f172a}
+h1{font-size:24px;text-align:center;line-height:1.3}
+#st{margin:14px 0 36px;color:#64748b;font-size:15px;text-align:center;max-width:340px}
+#st.on{color:#15803d;font-weight:600}#st.err{color:#b91c1c}
+button{background:#1d6fe8;color:#fff;border:0;border-radius:12px;padding:16px 56px;font-size:18px;font-weight:600}
+button:active{opacity:.8}button.off{background:#94a3b8}
+#last{margin-top:34px;font-size:13px;color:#64748b;text-align:center}
+</style></head><body>
+<h1>SMM MOON<br>Transaction Verifier</h1>
+<p id="st">বন্ধ আছে</p>
+<button id="btn" type="button">Turn On</button>
+<p id="last"></p>
+<script>
+var st=document.getElementById("st"),btn=document.getElementById("btn");
+function setState(on){st.textContent=on?"চালু আছে — bKash/Nagad SMS দেখা হচ্ছে":"বন্ধ আছে";st.className=on?"on":"";btn.textContent=on?"Turned On":"Turn On";btn.className=on?"off":"";}
+function setMsg(t){st.textContent=t;st.className="err";}
+function setLast(t){document.getElementById("last").textContent=t?("Last sync: "+t):"";}
+btn.addEventListener("click",function(){
+  if(window.Android){ Android.turnOn(); }
+  else if(/SMMMoonApp/.test(navigator.userAgent)){ setMsg("App bridge load hoy nai. App uninstall kore notun APK install korun."); }
+  else { setMsg("এই পেজ ব্রাউজারে খোলা হয়েছে। APK app এর ভিতরে খুলুন।"); }
+});
+if(window.Android){ setState(Android.isOn()); }
+</script></body></html>

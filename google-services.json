@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "854018818535",
+    "firebase_url": "https://bkash-nagad-sms-checker-default-rtdb.firebaseio.com",
+    "project_id": "bkash-nagad-sms-checker",
+    "storage_bucket": "bkash-nagad-sms-checker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:854018818535:android:b85488560b43045a143d42",
+        "android_client_info": {
+          "package_name": "com.company.sms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ_h3c-THg5UNCvcqmEW0B7NdmQe0hvQs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
